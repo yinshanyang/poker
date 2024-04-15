@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { parse } from '@/lib/parse'
 
-import type { MouseEventHandler, ChangeEventHandler } from 'react'
+import type { ChangeEventHandler } from 'react'
 import type { Result } from '@/types'
 
 const Home = () => {
@@ -70,7 +70,16 @@ For example:
             </tbody>
             <tfoot>
               <th
-                colSpan={2}
+                scope="col"
+                className="px-3 py-3.5 text-left text-sm font-semibold sm:pl-0"
+              >
+                Total
+                {delta! === 0 && ': okay'}
+                {delta! < 0 && ': losers lose less'}
+                {delta! > 0 && ': winners win less'}
+              </th>
+              <th
+                scope="col"
                 className="px-3 py-3.5 text-right text-sm font-mono font-semibold text-foreground"
               >
                 {delta! > 0 && '+'}

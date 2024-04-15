@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
 
-import type { Result } from '@/types'
+import type { Result } from '../types'
 import { parse } from './parse'
 
 describe('lib/parse', () => {
@@ -65,24 +65,26 @@ describe('lib/parse', () => {
 
   it('should handle different list styles', () => {
     const actual = parse(`
-      - magic (+100)
-      * ultra (+100)
-      1. unicorn (+100)
-      1. magical (+100)
-      2. sunshine (+100)
-      99. rainbow (+100)
-      1) awesome (+100)
-      99) possum (+100)
+      - dash (+100)
+      - dash_negative (-100)
+      * asterisk (+100)
+      1. ordered-list_one (+100)
+      1. ordered-list_repeat (+100)
+      2. ordered-list_two (+100)
+      99. ordered-list_ninety-nine (+100)
+      1) ordered-list-parenthesis_one (+100)
+      99) ordered-list-parenthesis_ninety-nine (+100)
     `)
     const expected = [
-      { name: 'magic', total: 100 },
-      { name: 'ultra', total: 100 },
-      { name: 'unicorn', total: 100 },
-      { name: 'magical', total: 100 },
-      { name: 'sunshine', total: 100 },
-      { name: 'rainbow', total: 100 },
-      { name: 'awesome', total: 100 },
-      { name: 'possum', total: 100 },
+      { name: 'dash', total: 100 },
+      { name: 'dash_negative', total: -100 },
+      { name: 'asterisk', total: 100 },
+      { name: 'ordered-list_one', total: 100 },
+      { name: 'ordered-list_repeat', total: 100 },
+      { name: 'ordered-list_two', total: 100 },
+      { name: 'ordered-list_ninety-nine', total: 100 },
+      { name: 'ordered-list-parenthesis_one', total: 100 },
+      { name: 'ordered-list-parenthesis_ninety-nine', total: 100 },
     ]
     assert.deepEqual(actual, expected)
   })
@@ -100,12 +102,42 @@ describe('lib/parse', () => {
     assert.deepEqual(actual, expected)
   })
 
+  it('should handle PnL === 0', () => {
+    const actual = parse(`
+      1. magic (0)
+      2. ultra (+0)
+      3. sunshine (-0)
+    `)
+    const expected = [
+      { name: 'magic', total: 0 },
+      { name: 'ultra', total: 0 },
+      { name: 'sunshine', total: 0 },
+    ]
+    assert.deepEqual(actual, expected)
+  })
+
   it('should handle lines without PnL', () => {
     const actual = parse(`
       1. magic (+100)
       2. ultra
     `)
     const expected = [{ name: 'magic', total: 100 }]
+    assert.deepEqual(actual, expected)
+  })
+
+  it('should handle malformed names', () => {
+    const actual = parse(`
+      1.magic (+100)
+      2)ultra (+100)
+      -magical (+100)
+      *sunshine (+100)
+    `)
+    const expected = [
+      { name: 'magic', total: 100 },
+      { name: 'ultra', total: 100 },
+      { name: 'magical', total: 100 },
+      { name: 'sunshine', total: 100 },
+    ]
     assert.deepEqual(actual, expected)
   })
 
@@ -118,6 +150,7 @@ describe('lib/parse', () => {
       5. unicorn (+100))
       6. rainbow ((+100))
       7. awesome (+100) with comments at the back
+      8. possum ()
     `)
     const expected = [
       { name: 'magic', total: 100 },
@@ -127,6 +160,7 @@ describe('lib/parse', () => {
       { name: 'unicorn', total: 100 },
       { name: 'rainbow', total: 100 },
       { name: 'awesome', total: 100 },
+      { name: 'possum', total: null },
     ]
     assert.deepEqual(actual, expected)
   })
