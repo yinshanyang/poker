@@ -1,6 +1,7 @@
 import type { Result } from '@/types'
 
-const regex = /^(\d+\))|(\d+\.)|(\-)|(\*)/
+// const regex = /^(\d+\))|^(\d+\.)|^(\-)|^(\*)/
+const regex = /^((\d+\))|(\d+\.)|(\-)|(\*))/g
 
 export const parse = (str: string): Result[] => {
   const lines = str.split('\n')
@@ -10,7 +11,13 @@ export const parse = (str: string): Result[] => {
     .filter((line) => line.match(/\(/))
     .map((line) => {
       const [first, ...rest] = line.split('(')
-      const name = first.replace(regex, '').trim().split(/\d/)[0].trim()
+      const name = first
+        .replace(regex, '')
+        .trim()
+        .replace(regex, '')
+        .trim()
+        .split(/\d/)[0]
+        .trim()
       const total = rest
         .join('')
         .split(')')[0]

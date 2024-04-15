@@ -91,8 +91,11 @@ describe('lib/parse', () => {
 
   it('should handle non-PnL lines', () => {
     const actual = parse(`
+      Thur 7-12.30am I host 1/2 (cap buy in $1200), who can play:
       This line does not matter
       (neither) does this line
+      This line (doesn’t matter)
+      This-1 line doesn’t matter (really)
       1234 this is not a PnL line
       -100 is also not a PnL line
       1. magic (+100)
@@ -131,12 +134,20 @@ describe('lib/parse', () => {
       2)ultra (+100)
       -magical (+100)
       *sunshine (+100)
+      5)5)unicorn (+100)
+      5) 5) rainbow (+100)
+      5.5.awesome (+100)
+      5. 5. possum (+100)
     `)
     const expected = [
       { name: 'magic', total: 100 },
       { name: 'ultra', total: 100 },
       { name: 'magical', total: 100 },
       { name: 'sunshine', total: 100 },
+      { name: 'unicorn', total: 100 },
+      { name: 'rainbow', total: 100 },
+      { name: 'awesome', total: 100 },
+      { name: 'possum', total: 100 },
     ]
     assert.deepEqual(actual, expected)
   })
