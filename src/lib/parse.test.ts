@@ -15,10 +15,12 @@ describe('lib/parse', () => {
     const actual = parse(`
       1. magic (+100)
       2. ultra (-100)
+      3. magical unicorn (+100)
     `)
     const expected = [
       { name: 'magic', total: 100 },
       { name: 'ultra', total: -100 },
+      { name: 'magical unicorn', total: 100 },
     ]
     assert.deepEqual(actual, expected)
   })
@@ -42,8 +44,12 @@ describe('lib/parse', () => {
   it('should handle entries with buy-ins', () => {
     const actual = parse(`
       1. magic 1,2, 3 (+100)
+      1. sunshine 100,200,300 (+100)
     `)
-    const expected = [{ name: 'magic', total: 100 }]
+    const expected = [
+      { name: 'magic', total: 100 },
+      { name: 'sunshine', total: 100 },
+    ]
     assert.deepEqual(actual, expected)
   })
 
@@ -100,6 +106,8 @@ describe('lib/parse', () => {
       -100 is also not a PnL line
       1. magic (+100)
       nor does this line
+      * this almost looks like a PnL line
+      99. this also looks like a PnL line
     `)
     const expected = [{ name: 'magic', total: 100 }]
     assert.deepEqual(actual, expected)
