@@ -1,58 +1,55 @@
 import type { Result } from '@/types'
 
-type Expression = Node[]
-
+type Expression = [Start, Name, PnL]
 type Node = Start | Name | PnL
-
 type Start = { __type: 'START' }
 type Name = { __type: 'NAME'; value: string }
 type PnL = { __type: 'PNL'; value: number | null }
 
-const START_REGEX = /^((\d+\))|(\d+\.)|(\-)|(\*))/
-const NAME_REGEX = /[a-zA-Z_\- ]+/
-const PNL_REGEX = /\(+(\+|\-)?((\d|,)?)+(\)?)+/
-const PNL_VALUE_REGEX = /(\d|,|\+|\-)+/
+const START_REGEX = /^(( ?)+((\d+\))|(\d+\.)|\*|\-) ?)+/
+const NAME_REGEX = /([a-zA-Z][_\- ]?)+/
+const PNL_REGEX = /\(+(\+|\-)?((\d|,| )?)+(\)?)+/
+const PNL_VALUE_REGEX = /[\d,\+\- ]+/
 
 export const parse = (str: string): Result[] =>
   str
     .split('\n')
-    .map(lex)
-    .filter(
-      ([node, ...nodes]) =>
-        node &&
-        node.__type === 'START' &&
-        !!nodes.find((node) => node.__type === 'PNL')
-    )
-    .map((nodes) => {
-      const name = nodes.find((node): node is Name => node.__type === 'NAME')
-      const pnl = nodes.find((node): node is PnL => node.__type === 'PNL')
-      return { name: !!name ? name.value : '', total: !!pnl ? pnl.value : null }
+    .map(getNodes)
+    .map(getExpression)
+    .filter(isValidExpression)
+    .map(([_, name, pnl]): Result => ({ name: name.value, total: pnl.value }))
+
+function isValidExpression(
+  expression: Expression | null
+): expression is Expression {
+  return !!expression
+}
+
+function getNodes(line: string): Node[] {
+  const nodes: Node[] = []
+  const start = line.match(START_REGEX)
+  const name = line.match(NAME_REGEX)
+  const pnl = line.match(PNL_REGEX)
+  !!start && nodes.push({ __type: 'START' })
+  !!name && nodes.push({ __type: 'NAME', value: name[0].trim() })
+  !!pnl &&
+    nodes.push({
+      __type: 'PNL',
+      value: ((pnl) => {
+        const match = pnl[0].match(PNL_VALUE_REGEX)
+        return !!match
+          ? isNaN(+match[0].replace(/[, ]/g, ''))
+            ? null
+            : +match[0].replace(/[, ]/g, '')
+          : null
+      })(pnl),
     })
+  return nodes
+}
 
-function lex(line: string): Expression {
-  let l = line.trim()
-  const expression: Node[] = []
-
-  let start = l.match(START_REGEX)
-  while (!!start) {
-    l = l.replace(START_REGEX, '').trim()
-    expression.push({ __type: 'START' })
-    start = l.match(START_REGEX)
-  }
-
-  const name = l.match(NAME_REGEX)
-  if (!!name) {
-    l = l.replace(NAME_REGEX, '')
-    expression.push({ __type: 'NAME', value: name[0].trim() })
-  }
-
-  const pnl = l.match(PNL_REGEX)
-  if (!!pnl) {
-    l = l.replace(PNL_REGEX, '')
-    const valueString = pnl[0].match(PNL_VALUE_REGEX)
-    const value = !!valueString ? +valueString[0].replace(/,/g, '') : null
-    expression.push({ __type: 'PNL', value })
-  }
-
-  return expression
+function getExpression(nodes: Node[]): Expression | null {
+  const start = nodes.find((node): node is Start => node.__type === 'START')
+  const name = nodes.find((node): node is Name => node.__type === 'NAME')
+  const pnl = nodes.find((node): node is PnL => node.__type === 'PNL')
+  return !!start && !!name && !!pnl ? [start, name, pnl] : null
 }

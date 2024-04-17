@@ -11,7 +11,7 @@ describe('lib/parse', () => {
     assert.deepEqual(actual, expected)
   })
 
-  it('should handle valid input: (+100), (-100)', () => {
+  it('should handle valid expression, [Start, Name, PnL]', () => {
     const actual = parse(`
       1. magic (+100)
       2. ultra (-100)
@@ -33,11 +33,19 @@ describe('lib/parse', () => {
     assert.deepEqual(actual, expected)
   })
 
-  it('should handle numbers with commas', () => {
+  it('should handle numbers with commas and spaces', () => {
     const actual = parse(`
-      1. magic (1,000)
+      1. thousand-comma (1,000)
+      1. million-comma (1,000,000)
+      1. thousand-space (1 000)
+      1. million-space (1 000 000)
     `)
-    const expected = [{ name: 'magic', total: 1000 }]
+    const expected = [
+      { name: 'thousand-comma', total: 1_000 },
+      { name: 'million-comma', total: 1_000_000 },
+      { name: 'thousand-space', total: 1_000 },
+      { name: 'million-space', total: 1_000_000 },
+    ]
     assert.deepEqual(actual, expected)
   })
 
@@ -56,16 +64,14 @@ describe('lib/parse', () => {
   it('should handle names with spaces', () => {
     const actual = parse(`
       1. magical sunshine unicorn (+100)
+      1. ultra magical sunshine unicorn 1, 2, 5 (+100)
+      1. super ultra magical sunshine unicorn 1,2,5 (+100)
     `)
-    const expected = [{ name: 'magical sunshine unicorn', total: 100 }]
-    assert.deepEqual(actual, expected)
-  })
-
-  it('should handle names with spaces and buy-ins', () => {
-    const actual = parse(`
-      1. magical sunshine unicorn 1, 2, 5 (+100)
-    `)
-    const expected = [{ name: 'magical sunshine unicorn', total: 100 }]
+    const expected = [
+      { name: 'magical sunshine unicorn', total: 100 },
+      { name: 'ultra magical sunshine unicorn', total: 100 },
+      { name: 'super ultra magical sunshine unicorn', total: 100 },
+    ]
     assert.deepEqual(actual, expected)
   })
 
@@ -102,6 +108,7 @@ describe('lib/parse', () => {
       (neither) does this line
       This line (doesn’t matter)
       This-1 line doesn’t matter (really)
+      This line does not have a START token but has a valid PnL (+100)
       1234 this is not a PnL line
       -100 is also not a PnL line
       1. magic (+100)
@@ -170,6 +177,8 @@ describe('lib/parse', () => {
       6. rainbow ((+100))
       7. awesome (+100) with comments at the back
       8. possum ()
+      9. plus (+)
+      10. minus (-)
     `)
     const expected = [
       { name: 'magic', total: 100 },
@@ -180,6 +189,20 @@ describe('lib/parse', () => {
       { name: 'rainbow', total: 100 },
       { name: 'awesome', total: 100 },
       { name: 'possum', total: null },
+      { name: 'plus', total: null },
+      { name: 'minus', total: null },
+    ]
+    assert.deepEqual(actual, expected)
+  })
+
+  it('should handle PnL before name', () => {
+    const actual = parse(`
+      1. (+100) magic
+      2. (-100) sunshine
+    `)
+    const expected = [
+      { name: 'magic', total: 100 },
+      { name: 'sunshine', total: -100 },
     ]
     assert.deepEqual(actual, expected)
   })
