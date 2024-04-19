@@ -167,31 +167,34 @@ describe('lib/parse', () => {
     assert.deepEqual(actual, expected)
   })
 
-  it('should handle malformed PnL', () => {
+  it('should handle malformed but valid PnL', () => {
     const actual = parse(`
       1. magic(+100)
-      2. ultra (not a number)
-      3. magical (+100
-      4. sunshine ((+100)
-      5. unicorn (+100))
-      6. rainbow ((+100))
-      7. awesome (+100) with comments at the back
-      8. possum ()
-      9. plus (+)
-      10. minus (-)
+      2. magical (+100
+      3. sunshine ((+100)
+      4. unicorn (+100))
+      5. rainbow ((+100))
+      6. awesome (+100) with comments at the back
     `)
     const expected = [
       { name: 'magic', total: 100 },
-      { name: 'ultra', total: null },
       { name: 'magical', total: 100 },
       { name: 'sunshine', total: 100 },
       { name: 'unicorn', total: 100 },
       { name: 'rainbow', total: 100 },
       { name: 'awesome', total: 100 },
-      { name: 'possum', total: null },
-      { name: 'plus', total: null },
-      { name: 'minus', total: null },
     ]
+    assert.deepEqual(actual, expected)
+  })
+
+  it('it should ignore malformed and invalid PnL', () => {
+    const actual = parse(`
+      1. ultra (not a number)
+      2. possum ()
+      3. plus (+)
+      4. minus (-)
+    `)
+    const expected = []
     assert.deepEqual(actual, expected)
   })
 
@@ -203,6 +206,20 @@ describe('lib/parse', () => {
     const expected = [
       { name: 'magic', total: 100 },
       { name: 'sunshine', total: -100 },
+    ]
+    assert.deepEqual(actual, expected)
+  })
+
+  it('should handle multiple brackets and take the first valid set', () => {
+    const actual = parse(`
+      1. magic (dealer) (100)
+      2. sunshine (-100) (100)
+      2. unicorn (100) (dealer)
+    `)
+    const expected = [
+      { name: 'magic', total: 100 },
+      { name: 'sunshine', total: -100 },
+      { name: 'unicorn', total: 100 },
     ]
     assert.deepEqual(actual, expected)
   })
