@@ -8,7 +8,7 @@ type PnL = { __type: 'PNL'; value: number | null }
 
 const START_REGEX = /^(( ?)+((\d+\))|(\d+\.)|\*|\-) ?)+/
 const NAME_REGEX = /([a-zA-Z][_\- ]?)+/
-const PNL_REGEX = /\(+(\+|\-)?((\d(,| )?))+(\)?)+/
+const PNL_REGEX = /\(+(( |\+|\-)?)+((\d(,| )?))+(\)?)+/
 const PNL_VALUE_REGEX = /((\+|\-)?\d(,| )?)+/
 
 export const parse = (str: string): Result[] =>

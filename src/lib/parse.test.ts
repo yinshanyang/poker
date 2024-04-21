@@ -175,6 +175,8 @@ describe('lib/parse', () => {
       4. unicorn (+100))
       5. rainbow ((+100))
       6. awesome (+100) with comments at the back
+      7. possum ( -100 )
+      8. ultra ( 100)
     `)
     const expected = [
       { name: 'magic', total: 100 },
@@ -183,6 +185,8 @@ describe('lib/parse', () => {
       { name: 'unicorn', total: 100 },
       { name: 'rainbow', total: 100 },
       { name: 'awesome', total: 100 },
+      { name: 'possum', total: -100 },
+      { name: 'ultra', total: 100 },
     ]
     assert.deepEqual(actual, expected)
   })
@@ -193,6 +197,8 @@ describe('lib/parse', () => {
       2. possum ()
       3. plus (+)
       4. minus (-)
+      5. magical ( )
+      6. sunshine ( + what the fuck is this? - )
     `)
     const expected = []
     assert.deepEqual(actual, expected)
